@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import sys
 import os
+import matplotlib.pyplot as plt
 
 
 def laplacian(image_path, output_dir_path):
@@ -44,11 +45,26 @@ def laplacian(image_path, output_dir_path):
     outimg4 = cv2.convertScaleAbs(out4)
     outimg8 = cv2.convertScaleAbs(out8)
 
+    (hist, bins) = np.histogram(img.flatten(), 256, [0, 256])
+
+    (hist4, bins4) = np.histogram(out4.flatten(), 256, [0, 256])
+
+    fig = plt.figure()
+
+    # グラフをプロット
+    plt.plot(bins[:256], hist, label='処理前')
+    plt.plot(bins4[:256], hist4, label='処理後')
+    # グラフの凡例
+    plt.legend()
+
     # 出力する画像ファイル名を作る
-    basename = os.path.basename(image_path)[0:image_path.rfind('.')]
+    basename = os.path.basename(image_path)[
+        0:os.path.basename(image_path).rfind('.')]
     wfname4 = output_dir_path + "/" + basename + '_laplacian4.png'
     wfname8 = output_dir_path + "/" + basename + '_laplacian8.png'
 
     # 出力
     cv2.imwrite(wfname4, outimg4)
     cv2.imwrite(wfname8, outimg8)
+
+    fig.savefig(output_dir_path + "/plt.png")
