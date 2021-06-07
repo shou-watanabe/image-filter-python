@@ -17,4 +17,4 @@ if not os.path.exists(output_dir_path):  # ディレクトリがなかったら
 if filter_name == "laplacian":
     laplacian(image_path, output_dir_path)
 else:
-    print("filter not found")
+    raise ValueError("filter not found")
