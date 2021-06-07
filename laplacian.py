@@ -1,37 +1,25 @@
 # 線形空間フィルタリングを行う
 import cv2
 import numpy as np
-import sys
 import os
 import matplotlib.pyplot as plt
 
 
 def laplacian(image_path, output_dir_path):
-    print('ラプラシアンフィルタリングを行う')
-
     # 画像データ読み込み（原画像のカラー状態を保持して読み込む）
     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
 
     if img.ndim != 2:
-        print('濃淡画像ではありません')
-        sys.exit()
-
-    # 画像の縦横サイズの取得
-    h, w = img.shape[:2]
-
-    # サイズ，カラー，画素のデータタイプ
-    print('入力画像ファイル = ', image_path)
-    print('高さ = ', h, ',幅 = ', w)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # 係数行列の定義
-
     # 四近傍ラプラシアン
-    kernel1 = np.array([[0, 1, 0],
+    kernel4 = np.array([[0, 1, 0],
                         [1, -4, 1],
                         [0, 1, 0]], np.float32)
 
     # 八近傍ラプラシアン
-    kernel2 = np.array([[1, 1, 1],
+    kernel8 = np.array([[1, 1, 1],
                         [1, -8, 1],
                         [1, 1, 1]], np.float32)
 
@@ -39,32 +27,31 @@ def laplacian(image_path, output_dir_path):
     img = img.astype(np.float32)
 
     # カーネルでフィルタリング
-    out4 = cv2.filter2D(img, -1, kernel1)  # -1:入力画像（img）と同じデータ型でreturnする
-    out8 = cv2.filter2D(img, -1, kernel2)
+    out = cv2.filter2D(img, -1, kernel4)  # -1:入力画像（img）と同じデータ型でreturnする
 
-    outimg4 = cv2.convertScaleAbs(out4)
-    outimg8 = cv2.convertScaleAbs(out8)
+    outimg = cv2.convertScaleAbs(out)
 
     (hist, bins) = np.histogram(img.flatten(), 256, [0, 256])
 
-    (hist4, bins4) = np.histogram(out4.flatten(), 256, [0, 256])
+    (hhist, hbins) = np.histogram(out.flatten(), 256, [0, 256])
 
     fig = plt.figure()
 
     # グラフをプロット
-    plt.plot(bins[:256], hist, label='処理前')
-    plt.plot(bins4[:256], hist4, label='処理後')
+    plt.plot(bins[:256], hist, label='before')
+    plt.plot(hbins[:256], hhist, label='after')
     # グラフの凡例
     plt.legend()
 
-    # 出力する画像ファイル名を作る
-    basename = os.path.basename(image_path)[
-        0:os.path.basename(image_path).rfind('.')]
-    wfname4 = output_dir_path + "/" + basename + '_laplacian4.png'
-    wfname8 = output_dir_path + "/" + basename + '_laplacian8.png'
+    basename = os.path.basename(image_path)
+
+    file_name = basename[0:basename.rfind('.')]
+
+    wfname = os.path.join(output_dir_path, basename)
 
     # 出力
-    cv2.imwrite(wfname4, outimg4)
-    cv2.imwrite(wfname8, outimg8)
+    cv2.imwrite(wfname, outimg)
 
-    fig.savefig(output_dir_path + "/plt.png")
+    graph_file_name = os.path.join(output_dir_path, file_name + "_plt.png")
+
+    fig.savefig(graph_file_name)
